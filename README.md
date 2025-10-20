@@ -18,7 +18,7 @@ This repository contains an AI agent designed to analyze California Landscape Me
 - [License](#license)
 
 ## Overview
-The California Landscape Metrics Analysis Agent leverages geospatial data services (WCS and WFS) to provide insights into metrics such as carbon turnover time, wildfire hazard, vegetation height, and more. It uses a FastMCP server for dataset operations and a Pydantic AI agent for natural language query processing. The interactive chat interface, implemented in a Jupyter notebook, allows users to ask questions and receive answers with dataset details.
+The California Landscape Metrics Analysis Agent leverages geospatial data services (WCS and WFS) to provide insights into metrics such as carbon turnover time, annual burn probability,  and more. It uses a FastMCP server for dataset operations and a Pydantic AI agent for natural language query processing. The interactive chat interface, implemented in a Jupyter notebook, allows users to ask questions and receive answers with dataset details.
 
 ## Features
 - **Dynamic Dataset Discovery**: Searches for relevant datasets using a RAG-based vector search.
@@ -121,10 +121,8 @@ The `ndp_clm_agent_chatbox.ipynb` Jupyter notebook provides an interactive chat 
 
 ## Example Queries
 - "What is the average carbon turnover time in Los Angeles County?"
-- "Which county has the highest wildfire hazard?"
+- "Which county has the highest average annual burn probability?"
 - "What is the burn probability in San Diego County?"
-- "What is the average vegetation height in Mendocino County?"
-- "Show me tree canopy cover statistics for Sacramento County."
 
 ## Contributing
 Contributions are welcome! Please follow these steps:
