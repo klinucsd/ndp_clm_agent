@@ -1,0 +1,6 @@
+fastmcp
+pydantic-ai
+openai
+requests
+nest-asyncio
+python-dotenv
