@@ -18,7 +18,7 @@ def search_datasets(
     
     This tool uses semantic search to find the most relevant California Landscape
     Metrics datasets for a given query. It returns dataset metadata including
-    WCS coverage IDs, descriptions, and data units.
+    WCS coverage IDs, WMS layer names, descriptions, and data units.
     
     Args:
         query: Natural language query describing what data you need
@@ -70,7 +70,14 @@ def search_datasets(
                 if resource.get('format') == 'WCS':
                     wcs_resource = resource
                     break
-            
+
+            # Find WMS resource
+            wms_resource = None
+            for resource in pkg.get('resources', []):
+                if resource.get('format') == 'WMS':
+                    wms_resource = resource
+                    break
+                    
             if not wcs_resource:
                 continue
             
@@ -80,6 +87,10 @@ def search_datasets(
             dataset_info = {
                 'wcs_coverage_id': wcs_resource.get('wcs_coverage_id'),
                 'wcs_base_url': wcs_resource.get('url'),
+                'wcs_projection': wcs_resource.get('wcs_srs'),
+                'wms_layer_name': wms_resource.get('wms_layer'),
+                'wms_base_url': wms_resource.get('url'),
+                'wms_projection': wcs_resource.get('wms_srs'),
                 'title': pkg.get('title', ''),
                 'description': pkg.get('notes', '')[:300],  # Truncate
                 'data_units': extras.get('data_units', 'unknown'),
@@ -186,6 +197,90 @@ def compute_zonal_stats(
         }
 
 
+# @mcp.tool()
+# def zonal_count(
+#     wcs_base_url: str,
+#     wfs_base_url: str,
+#     wcs_coverage_id: str,
+#     feature_id: str,
+#     filter_column: str,
+#     filter_value: str,
+#     threshold: float,
+#     max_retries: int = 3,
+#     timeout: int = 30,
+#     api_endpoint: str = "https://sparcal.sdsc.edu/api/v1/Utility/zonal_count"
+# ) -> dict:
+#     """
+#     Compute pixel counts above a threshold for a feature from WFS using raster data from WCS.
+    
+#     This tool calls a FastAPI endpoint that counts how many pixels in a raster layer
+#     have values exceeding a specified threshold within a geographic feature boundary.
+    
+#     Args:
+#         wcs_base_url: Base URL for the Web Coverage Service (e.g., "https://sparcal.sdsc.edu/geoserver")
+#         wfs_base_url: Base URL for the Web Feature Service (e.g., "https://sparcal.sdsc.edu/geoserver/boundary/wfs")
+#         wcs_coverage_id: Coverage identifier for the raster layer (e.g., "rrk__cstocks_turnovertime_202009_202312_t1_v5")
+#         feature_id: Feature type identifier (e.g., "boundary:ca_counties")
+#         filter_column: Column name to filter features (e.g., "name")
+#         filter_value: Single value to identify the feature (e.g., "San Diego")
+#         threshold: Threshold value for counting pixels
+#         max_retries: Maximum number of retry attempts for failed requests (1-10)
+#         timeout: Request timeout in seconds (10-120)
+#         api_endpoint: FastAPI endpoint URL
+    
+#     Returns:
+#         Dictionary containing:
+#         - success: Boolean indicating if operation succeeded
+#         - data: Dictionary with:
+#             - filter_column: Name of the feature
+#             - valid_pixels: Total count of valid (non-nodata) pixels
+#             - above_threshold_pixels: Count of pixels above the threshold
+#             - pixel_area_square_meters: Area of each pixel in square meters
+#         - processing_time_seconds: Time taken to process
+#         - message: Status message
+    
+#     Example:
+#         result = zonal_count(
+#             wcs_base_url="https://sparcal.sdsc.edu/geoserver",
+#             wfs_base_url="https://sparcal.sdsc.edu/geoserver/boundary/wfs",
+#             wcs_coverage_id="rrk__cstocks_turnovertime_202009_202312_t1_v5",
+#             feature_id="boundary:ca_counties",
+#             filter_column="name",
+#             filter_value="San Diego",
+#             threshold=100.0
+#         )
+        
+#         # Calculate percentage and area
+#         if result['success']:
+#             data = result['data']
+#             percentage = (data['above_threshold_pixels'] / data['valid_pixels'] * 100)
+#             area_sq_m = data['above_threshold_pixels'] * data['pixel_area_square_meters']
+#             print(f"Percentage: {percentage:.2f}%")
+#             print(f"Area: {area_sq_m:.2f} square meters")
+#     """
+#     payload = {
+#         "wcs_base_url": wcs_base_url,
+#         "wfs_base_url": wfs_base_url,
+#         "wcs_coverage_id": wcs_coverage_id,
+#         "feature_id": feature_id,
+#         "filter_column": filter_column,
+#         "filter_value": filter_value,
+#         "threshold": threshold,
+#         "max_retries": max_retries,
+#         "timeout": timeout
+#     }
+    
+#     try:
+#         response = requests.post(api_endpoint, json=payload, timeout=max(timeout, 60))
+#         response.raise_for_status()
+#         return response.json()
+#     except requests.exceptions.RequestException as e:
+#         return {
+#             "success": False,
+#             "error": str(e),
+#             "message": f"Failed to call API endpoint: {str(e)}"
+#         }
+
 @mcp.tool()
 def zonal_count(
     wcs_base_url: str,
@@ -193,17 +288,19 @@ def zonal_count(
     wcs_coverage_id: str,
     feature_id: str,
     filter_column: str,
-    filter_value: str,
-    threshold: float,
+    filter_value: Optional[Union[str, List[str]]] = None,
+    threshold: float = 100.0,
     max_retries: int = 3,
     timeout: int = 30,
-    api_endpoint: str = "https://sparcal.sdsc.edu/api/v1/Utility/zonal_count"
+    max_workers: int = 16,
+    api_endpoint: str = "https://sparcal.sdsc.edu/api/v1/Utility/zonal_count_batch"
 ) -> dict:
     """
-    Compute pixel counts above a threshold for a feature from WFS using raster data from WCS.
+    Compute pixel counts above a threshold for features from WFS using raster data from WCS.
     
     This tool calls a FastAPI endpoint that counts how many pixels in a raster layer
-    have values exceeding a specified threshold within a geographic feature boundary.
+    have values exceeding a specified threshold within geographic feature boundaries.
+    Supports processing single or multiple features in parallel.
     
     Args:
         wcs_base_url: Base URL for the Web Coverage Service (e.g., "https://sparcal.sdsc.edu/geoserver")
@@ -211,24 +308,30 @@ def zonal_count(
         wcs_coverage_id: Coverage identifier for the raster layer (e.g., "rrk__cstocks_turnovertime_202009_202312_t1_v5")
         feature_id: Feature type identifier (e.g., "boundary:ca_counties")
         filter_column: Column name to filter features (e.g., "name")
-        filter_value: Single value to identify the feature (e.g., "San Diego")
-        threshold: Threshold value for counting pixels
+        filter_value: Single value, list of values, or None to process all features (e.g., "San Diego" or ["San Diego", "Los Angeles"])
+        threshold: Threshold value for counting pixels (default: 100.0)
         max_retries: Maximum number of retry attempts for failed requests (1-10)
         timeout: Request timeout in seconds (10-120)
+        max_workers: Number of parallel workers for processing (1-24)
         api_endpoint: FastAPI endpoint URL
     
     Returns:
         Dictionary containing:
         - success: Boolean indicating if operation succeeded
-        - data: Dictionary with:
+        - data: List of dictionaries, each with:
             - filter_column: Name of the feature
             - valid_pixels: Total count of valid (non-nodata) pixels
             - above_threshold_pixels: Count of pixels above the threshold
             - pixel_area_square_meters: Area of each pixel in square meters
+            - threshold: The threshold value used
+        - failed_features: List of features that failed processing (if any)
+        - total_features: Total number of features attempted
+        - processed_features: Number of successfully processed features
         - processing_time_seconds: Time taken to process
         - message: Status message
     
-    Example:
+    Examples:
+        # Process a single county
         result = zonal_count(
             wcs_base_url="https://sparcal.sdsc.edu/geoserver",
             wfs_base_url="https://sparcal.sdsc.edu/geoserver/boundary/wfs",
@@ -239,13 +342,36 @@ def zonal_count(
             threshold=100.0
         )
         
-        # Calculate percentage and area
+        # Process multiple counties
+        result = zonal_count(
+            wcs_base_url="https://sparcal.sdsc.edu/geoserver",
+            wfs_base_url="https://sparcal.sdsc.edu/geoserver/boundary/wfs",
+            wcs_coverage_id="rrk__cstocks_turnovertime_202009_202312_t1_v5",
+            feature_id="boundary:ca_counties",
+            filter_column="name",
+            filter_value=["San Diego", "Los Angeles", "Orange"],
+            threshold=100.0,
+            max_workers=8
+        )
+        
+        # Process all counties
+        result = zonal_count(
+            wcs_base_url="https://sparcal.sdsc.edu/geoserver",
+            wfs_base_url="https://sparcal.sdsc.edu/geoserver/boundary/wfs",
+            wcs_coverage_id="rrk__cstocks_turnovertime_202009_202312_t1_v5",
+            feature_id="boundary:ca_counties",
+            filter_column="name",
+            filter_value=None,  # Process all features
+            threshold=100.0,
+            max_workers=16
+        )
+        
+        # Calculate percentages and areas from results
         if result['success']:
-            data = result['data']
-            percentage = (data['above_threshold_pixels'] / data['valid_pixels'] * 100)
-            area_sq_m = data['above_threshold_pixels'] * data['pixel_area_square_meters']
-            print(f"Percentage: {percentage:.2f}%")
-            print(f"Area: {area_sq_m:.2f} square meters")
+            for data in result['data']:
+                percentage = (data['above_threshold_pixels'] / data['valid_pixels'] * 100) if data['valid_pixels'] > 0 else 0
+                area_sq_m = data['above_threshold_pixels'] * data['pixel_area_square_meters']
+                print(f"{data[filter_column]}: {percentage:.2f}% ({area_sq_m:.2f} sq m)")
     """
     payload = {
         "wcs_base_url": wcs_base_url,
@@ -256,7 +382,8 @@ def zonal_count(
         "filter_value": filter_value,
         "threshold": threshold,
         "max_retries": max_retries,
-        "timeout": timeout
+        "timeout": timeout,
+        "max_workers": max_workers
     }
     
     try:
@@ -269,13 +396,3 @@ def zonal_count(
             "error": str(e),
             "message": f"Failed to call API endpoint: {str(e)}"
         }
-
-
-if __name__ == "__main__":
-    # Run with HTTP transport
-    mcp.run(
-        transport="http",
-        host="127.0.0.1",
-        port=8800,
-        path="/mcp"
-    )
