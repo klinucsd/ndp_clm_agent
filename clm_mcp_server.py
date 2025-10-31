@@ -311,3 +311,121 @@ def zonal_count(
             "error": str(e),
             "message": f"Failed to call API endpoint: {str(e)}"
         }
+
+@mcp.tool()
+def zonal_distribution(
+    wcs_base_url: str,
+    wfs_base_url: str,
+    wcs_coverage_id: str,
+    feature_id: str,
+    filter_column: str,
+    filter_value: Optional[Union[str, List[str]]] = None,
+    categorical_threshold: int = 20,
+    num_bins: int = 10,
+    global_bins: bool = True,
+    max_retries: int = 3,
+    timeout: int = 30,
+    max_workers: int = 16,
+    api_endpoint: str = "https://sparcal.sdsc.edu/api/v1/Utility/zonal_distribution"
+) -> dict:
+    """
+    Compute value distribution for features from WFS using raster data from WCS.
+    
+    This tool analyzes the distribution of raster values within geographic features.
+    It automatically detects whether data is categorical or continuous and returns
+    appropriate distribution data for charting and comparison.
+    
+    Args:
+        wcs_base_url: Base URL for the Web Coverage Service (e.g., "https://sparcal.sdsc.edu/geoserver")
+        wfs_base_url: Base URL for the Web Feature Service (e.g., "https://sparcal.sdsc.edu/geoserver/boundary/wfs")
+        wcs_coverage_id: Coverage identifier for the raster layer (e.g., "rrk__cstocks_turnovertime_202009_202312_t1_v5")
+        feature_id: Feature type identifier (e.g., "boundary:ca_counties")
+        filter_column: Column name to filter features (e.g., "name")
+        filter_value: Single value, list of values, or None to process all features (e.g., "San Diego" or ["San Diego", "Los Angeles"])
+        categorical_threshold: Max unique values to treat as categorical (2-100, default: 20)
+        num_bins: Number of bins for continuous data (2-50, default: 10)
+        global_bins: Use same bins across all features for comparison (default: True)
+        max_retries: Maximum number of retry attempts for failed requests (1-10)
+        timeout: Request timeout in seconds (10-120)
+        max_workers: Number of parallel workers for processing (1-24)
+        api_endpoint: FastAPI endpoint URL
+    
+    Returns:
+        Dictionary containing:
+        - success: Boolean indicating if operation succeeded
+        - data: List of distribution data dictionaries
+            For categorical: {filter_column, value, count}
+            For continuous: {filter_column, bin_index, bin_start, bin_end, bin_label, count}
+        - distribution_type: "categorical" or "continuous"
+        - bins: List of bin edges for continuous data (None for categorical)
+        - bin_labels: List of human-readable bin labels (e.g., ["0.00 - 10.00", ...])
+        - failed_features: List of features that failed processing (if any)
+        - total_features: Total number of features attempted
+        - processed_features: Number of successfully processed features
+        - processing_time_seconds: Time taken to process
+        - message: Status message
+    
+    Examples:
+        # Compare distribution between two counties
+        result = zonal_distribution(
+            wcs_base_url="https://sparcal.sdsc.edu/geoserver",
+            wfs_base_url="https://sparcal.sdsc.edu/geoserver/boundary/wfs",
+            wcs_coverage_id="rrk__cstocks_turnovertime_202009_202312_t1_v5",
+            feature_id="boundary:ca_counties",
+            filter_column="name",
+            filter_value=["San Diego", "Los Angeles"],
+            num_bins=10,
+            global_bins=True
+        )
+        
+        # Analyze all counties with categorical detection
+        result = zonal_distribution(
+            wcs_base_url="https://sparcal.sdsc.edu/geoserver",
+            wfs_base_url="https://sparcal.sdsc.edu/geoserver/boundary/wfs",
+            wcs_coverage_id="land_cover_layer",
+            feature_id="boundary:ca_counties",
+            filter_column="name",
+            filter_value=None,
+            categorical_threshold=20,
+            max_workers=16
+        )
+        
+        # Use results for visualization
+        if result['success']:
+            print(f"Distribution type: {result['distribution_type']}")
+            
+            if result['distribution_type'] == 'categorical':
+                # Categorical data
+                for item in result['data']:
+                    print(f"{item[filter_column]}: value={item['value']}, count={item['count']}")
+            else:
+                # Continuous data with bins
+                print(f"Bins: {result['bins']}")
+                for item in result['data']:
+                    print(f"{item[filter_column]}: {item['bin_label']} -> {item['count']} pixels")
+    """
+    payload = {
+        "wcs_base_url": wcs_base_url,
+        "wfs_base_url": wfs_base_url,
+        "wcs_coverage_id": wcs_coverage_id,
+        "feature_id": feature_id,
+        "filter_column": filter_column,
+        "filter_value": filter_value,
+        "categorical_threshold": categorical_threshold,
+        "num_bins": num_bins,
+        "global_bins": global_bins,
+        "max_retries": max_retries,
+        "timeout": timeout,
+        "max_workers": max_workers
+    }
+    
+    try:
+        response = requests.post(api_endpoint, json=payload, timeout=max(timeout, 60))
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": f"Failed to call API endpoint: {str(e)}"
+        }
