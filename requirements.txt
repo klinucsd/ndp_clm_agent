@@ -4,3 +4,7 @@ openai
 requests
 nest-asyncio
 python-dotenv
+ipywidgets
+folium
+matplotlib
+markdown
