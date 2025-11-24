@@ -54,7 +54,7 @@ All agents use a FastMCP server that provides tools for:
 ├── simple_clm_agent.ipynb          # Basic dataset search agent
 ├── enhanced_clm_agent.ipynb        # Full-featured analysis agent with visualizations
 ├── advanced_clm_agent.ipynb        # Multi-agent system with LangGraph
-├── clm_mcp_server.py              # FastMCP server with analysis tools
+├── clm_mcp_server.py               # FastMCP server with analysis tools
 └── README.md                       # This file
 ```
 
