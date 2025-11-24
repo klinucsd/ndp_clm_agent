@@ -2,7 +2,7 @@
 
 An intelligent AI agent system for analyzing California Landscape Metrics datasets through natural language queries. The system provides multiple interaction interfaces ranging from simple dataset search to advanced multi-agent coordination with interactive visualizations.
 
-## 📋 Table of Contents
+## Table of Contents
 - [Overview](#overview)
 - [Features](#features)
 - [Repository Structure](#repository-structure)
@@ -16,7 +16,7 @@ An intelligent AI agent system for analyzing California Landscape Metrics datase
 - [Contributing](#contributing)
 - [License](#license)
 
-## 🌟 Overview
+## Overview
 
 This repository contains three progressively sophisticated AI agent implementations for California Landscape Metrics analysis:
 
@@ -31,7 +31,7 @@ All agents use a FastMCP server that provides tools for:
 - Value distribution analysis
 - Interactive map generation
 
-## ✨ Features
+## Features
 
 ### Core Capabilities
 - **Semantic Dataset Search**: RAG-based vector search across 189+ California datasets
@@ -48,7 +48,7 @@ All agents use a FastMCP server that provides tools for:
 - **Combined Analysis**: Integrates environmental and demographic data
 - **Smart Routing**: Confidence-based agent selection for optimal results
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 ├── simple_clm_agent.ipynb          # Basic dataset search agent
@@ -58,7 +58,7 @@ All agents use a FastMCP server that provides tools for:
 └── README.md                       # This file
 ```
 
-## 🚀 Installation
+## Installation
 
 ### 1. Clone the Repository
 ```bash
@@ -106,7 +106,7 @@ DC_API_KEY=your_data_commons_key_here
 LANGCHAIN_API_KEY=your_langsmith_key_here
 ```
 
-## 📚 Available Interfaces
+## Available Interfaces
 
 ### 1. Simple Dataset Search Agent
 **File:** `simple_clm_agent.ipynb`
@@ -189,7 +189,7 @@ os.environ["LANGCHAIN_PROJECT"] = "your_project"
 # "Compare burn probability and population density" → Uses both agents
 ```
 
-## 🖥️ MCP Server
+## MCP Server
 
 ### Overview
 The `clm_mcp_server.py` provides four main tools via FastMCP:
@@ -259,7 +259,7 @@ The server is hosted at `https://wenokn.fastmcp.app/mcp` by default. To run loca
 python clm_mcp_server.py
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### GeoServer Endpoints
 ```python
@@ -284,7 +284,7 @@ MODEL = "openai"  # Fast, reliable, ~$0.001 per query
 MODEL = "nrp"     # Free, open-source, slightly slower
 ```
 
-## 💡 Example Queries
+## Example Queries
 
 ### Simple Agent
 ```
@@ -313,7 +313,7 @@ MODEL = "nrp"     # Free, open-source, slightly slower
 - "What counties have high fire risk and high population?" (→ Both)
 ```
 
-## 🤖 Model Options
+## Model Options
 
 ### OpenAI GPT-4o-mini
 - **Pros**: Fast (1-3s), reliable, well-tested
@@ -325,7 +325,7 @@ MODEL = "nrp"     # Free, open-source, slightly slower
 - **Cons**: Slower (5-10s), requires NRP access
 - **Best for**: Research, cost-sensitive applications
 
-## 🔬 Advanced Features
+## Advanced Features
 
 ### LangSmith Tracing (Advanced Agent)
 View detailed execution traces at https://smith.langchain.com/:
@@ -363,7 +363,7 @@ Query Analysis
 - **Comparisons**: Side-by-side multi-county analysis
 - **Custom Styles**: Automatic style selection (e.g., `layer_name_std`)
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Areas for improvement:
 1. Additional data sources beyond CLM and Data Commons
@@ -372,11 +372,11 @@ Contributions are welcome! Areas for improvement:
 4. Additional statistical analysis methods
 5. Export capabilities (PDF, CSV, GeoJSON)
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - California Landscape Metrics team at SDSC
 - FastMCP framework by Anthropic
@@ -384,7 +384,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - LangGraph for multi-agent workflows
 - Google Data Commons for demographic data
 
-## 📞 Support
+## Support
 
 - **Issues**: Open a GitHub issue for bugs or feature requests
 - **Discussions**: Use GitHub Discussions for questions
