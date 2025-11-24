@@ -376,14 +376,6 @@ Contributions are welcome! Areas for improvement:
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
-
-- California Landscape Metrics team at SDSC
-- FastMCP framework by Anthropic
-- Pydantic AI for agent orchestration
-- LangGraph for multi-agent workflows
-- Google Data Commons for demographic data
-
 ## Support
 
 - **Issues**: Open a GitHub issue for bugs or feature requests
