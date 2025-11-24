@@ -1,136 +1,395 @@
 # California Landscape Metrics Analysis Agent
 
-This repository contains an AI agent designed to analyze California Landscape Metrics datasets. The agent provides tools to dynamically discover and query geospatial datasets, compute zonal statistics, and calculate areas based on thresholds for California counties. It includes a FastMCP server for dataset operations and an interactive Jupyter notebook chat interface for user queries.
+An intelligent AI agent system for analyzing California Landscape Metrics datasets through natural language queries. The system provides multiple interaction interfaces ranging from simple dataset search to advanced multi-agent coordination with interactive visualizations.
 
-## Table of Contents
+## 📋 Table of Contents
 - [Overview](#overview)
 - [Features](#features)
 - [Repository Structure](#repository-structure)
 - [Installation](#installation)
-- [Usage](#usage)
-  - [Running the FastMCP Server](#running-the-fastmcp-server)
-  - [Running the Command-Line Agent](#running-the-command-line-agent)
-  - [Using the Interactive Chat Interface](#using-the-interactive-chat-interface)
-- [Dependencies](#dependencies)
+- [Available Interfaces](#available-interfaces)
+- [MCP Server](#mcp-server)
 - [Configuration](#configuration)
 - [Example Queries](#example-queries)
+- [Model Options](#model-options)
+- [Advanced Features](#advanced-features)
 - [Contributing](#contributing)
 - [License](#license)
 
-## Overview
-The California Landscape Metrics Analysis Agent leverages geospatial data services (WCS and WFS) to provide insights into metrics such as carbon turnover time, annual burn probability,  and more. It uses a FastMCP server for dataset operations and a Pydantic AI agent for natural language query processing. The interactive chat interface, implemented in a Jupyter notebook, allows users to ask questions and receive answers with dataset details.
+## 🌟 Overview
 
-## Features
-- **Dynamic Dataset Discovery**: Searches for relevant datasets using a RAG-based vector search.
-- **Zonal Statistics**: Computes statistics (mean, median, min, max, std) for raster data within county boundaries.
-- **Threshold Analysis**: Calculates areas and percentages above or below specified thresholds for single counties.
-- **Interactive Chat Interface**: A Jupyter notebook-based UI for querying datasets in natural language.
-- **Scalable Processing**: Supports parallel processing with configurable retries and timeouts.
+This repository contains three progressively sophisticated AI agent implementations for California Landscape Metrics analysis:
 
-## Repository Structure
+1. **Simple Agent** (`simple_clm_agent.ipynb`) - Basic dataset search with conversation history
+2. **Enhanced Agent** (`enhanced_clm_agent.ipynb`) - Full analysis capabilities with maps and charts
+3. **Advanced Multi-Agent** (`advanced_clm_agent.ipynb`) - LangGraph-powered system with Data Commons integration
+
+All agents use a FastMCP server that provides tools for:
+- RAG-based semantic dataset discovery
+- Zonal statistics computation
+- Threshold-based area calculations
+- Value distribution analysis
+- Interactive map generation
+
+## ✨ Features
+
+### Core Capabilities
+- **Semantic Dataset Search**: RAG-based vector search across 189+ California datasets
+- **Zonal Statistics**: Compute mean, median, min, max, std for county boundaries
+- **Threshold Analysis**: Calculate areas and percentages above/below thresholds
+- **Distribution Analysis**: Generate histograms and value distributions
+- **Interactive Visualizations**: WMS-based maps with legends and distribution charts
+- **Conversation Memory**: Maintains context for follow-up questions
+- **Multi-Model Support**: Works with OpenAI GPT-4o-mini or NRP Qwen3
+
+### Advanced Features (advanced_clm_agent.ipynb)
+- **Multi-Agent Coordination**: Intelligent routing between CLM and Data Commons agents
+- **LangSmith Tracing**: Full observability with execution traces and cost tracking
+- **Combined Analysis**: Integrates environmental and demographic data
+- **Smart Routing**: Confidence-based agent selection for optimal results
+
+## 📁 Repository Structure
+
 ```
-├── clm_mcp_server.py       # FastMCP server with tools for dataset search and geospatial analysis
-├── clm_agent.py            # Pydantic AI agent for dynamic dataset discovery and query processing
-├── ndp_clm_agent_chatbox.ipynb  # Jupyter notebook with interactive chat interface
-└── README.md               # This file
+├── simple_clm_agent.ipynb          # Basic dataset search agent
+├── enhanced_clm_agent.ipynb        # Full-featured analysis agent with visualizations
+├── advanced_clm_agent.ipynb        # Multi-agent system with LangGraph
+├── clm_mcp_server.py              # FastMCP server with analysis tools
+└── README.md                       # This file
 ```
 
-## Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/california-landscape-metrics-agent.git
-   cd california-landscape-metrics-agent
-   ```
+## 🚀 Installation
 
-2. Create a virtual environment and activate it:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-username/california-landscape-metrics-agent.git
+cd california-landscape-metrics-agent
+```
 
-3. Install the required dependencies:
-   ```bash
-   pip install fastmcp pydantic-ai openai requests ipywidgets nest-asyncio python-dotenv
-   ```
+### 2. Create Virtual Environment
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-4. Set up your OpenAI API key:
-   - Create a `.env` file in the project root.
-   - Add your OpenAI API key:
-     ```env
-     OPENAI_API_KEY=your-api-key-here
-     ```
+### 3. Install Dependencies
 
-## Usage
+**For Simple Agent:**
+```bash
+pip install python-dotenv ipywidgets pydantic-ai fastmcp openai nest-asyncio
+```
 
-### Running the FastMCP Server
-The `clm_mcp_server.py` script runs a FastMCP server that provides tools for dataset search and geospatial analysis.
+**For Enhanced Agent:**
+```bash
+pip install python-dotenv ipywidgets pydantic-ai fastmcp openai nest-asyncio folium matplotlib markdown
+```
 
-1. Start the server:
-   ```bash
-   python clm_mcp_server.py
-   ```
-   The server will run on `http://127.0.0.1:8800/mcp` by default.
+**For Advanced Multi-Agent:**
+```bash
+pip install langgraph langchain-openai langchain-core langsmith python-dotenv aiohttp folium matplotlib markdown nest-asyncio ipywidgets pandas numpy
+```
 
-### Running the Command-Line Agent
-The `clm_agent.py` script provides a command-line interface to test the agent with predefined questions.
+### 4. Configure API Keys
 
-1. Ensure the FastMCP server is running (or update `mcp_client` in `clm_agent.py` to use a remote server: `Client("https://wenokn.fastmcp.app/mcp")`).
-2. Run the agent:
-   ```bash
-   python clm_agent.py
-   ```
-   The script will process a set of example questions and display the results.
+Create a `.env` file in the project root:
+```env
+# Required for all agents
+OPENAI_API_KEY=your_openai_key_here
 
-### Using the Interactive Chat Interface
-The `ndp_clm_agent_chatbox.ipynb` Jupyter notebook provides an interactive chat interface.
+# Optional: for NRP Qwen3 model
+NRP_API_KEY=your_nrp_key_here
 
-1. Install Jupyter if not already installed:
-   ```bash
-   pip install jupyter
-   ```
+# Optional: for Data Commons integration (advanced agent only)
+DC_API_KEY=your_data_commons_key_here
 
-2. Start Jupyter Notebook:
-   ```bash
-   jupyter notebook
-   ```
+# Optional: for LangSmith tracing (advanced agent only)
+LANGCHAIN_API_KEY=your_langsmith_key_here
+```
 
-3. Open `ndp_clm_agent_chatbox.ipynb` in the Jupyter interface.
-4. Run all cells to set up the agent and display the chat interface.
-5. Enter questions in the text area and click "Send" to get answers.
+## 📚 Available Interfaces
 
-**Note**: Ensure the OpenAI API key is set in the environment or directly in the notebook before running.
+### 1. Simple Dataset Search Agent
+**File:** `simple_clm_agent.ipynb`
 
-## Dependencies
-- Python 3.10+
-- `fastmcp`: For MCP server and client functionality
-- `pydantic-ai`: For AI agent implementation
-- `openai`: For GPT-4o-mini model integration
-- `requests`: For HTTP requests to geospatial services
-- `ipywidgets`: For Jupyter notebook UI
-- `nest-asyncio`: For nested asyncio in Jupyter
-- `python-dotenv`: For environment variable management
+**Best For:** Learning agent basics, quick dataset discovery
 
-## Configuration
-- **GeoServer Endpoints**:
-  - Web Coverage Service (WCS): `https://sparcal.sdsc.edu/geoserver`
-  - Web Feature Service (WFS): `https://sparcal.sdsc.edu/geoserver/boundary/wfs`
-  - Feature ID: `boundary:ca_counties`
-  - Filter Column: `name`
-- **MCP Server**: Defaults to `http://127.0.0.1:8800/mcp` (local) or `https://wenokn.fastmcp.app/mcp` (remote).
-- **OpenAI API Key**: Set via `.env` file or environment variable `OPENAI_API_KEY`.
+**Features:**
+- Semantic dataset search
+- Dataset metadata retrieval
+- Conversation history
+- Simple chat interface
 
-## Example Queries
-- "What is the average carbon turnover time in Los Angeles County?"
-- "Which county has the highest average annual burn probability?"
-- "What is the burn probability in San Diego County?"
+**Example Usage:**
+```python
+# In notebook
+MODEL = "openai"  # or "nrp"
+# Run all cells, then ask questions like:
+# "Find datasets about carbon turnover"
+# "What are the units for this dataset?"
+```
 
-## Contributing
-Contributions are welcome! Please follow these steps:
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/your-feature`).
-3. Make your changes and commit (`git commit -m "Add your feature"`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Create a pull request.
+### 2. Enhanced Analysis Agent
+**File:** `enhanced_clm_agent.ipynb`
 
-## License
+**Best For:** Comprehensive data analysis, production use
+
+**Features:**
+- All simple agent features
+- Zonal statistics computation
+- Threshold-based analysis
+- Interactive WMS maps with legends
+- Distribution charts and histograms
+- Multi-county comparisons
+- Markdown-formatted responses
+
+**Example Usage:**
+```python
+# In notebook
+MODEL = "openai"  # or "nrp"
+# Run all cells, then try queries like:
+# "What is the average carbon turnover time in Los Angeles?"
+# "Show me the unemployment distribution for San Diego and Orange counties"
+# "Show me a map of annual burn probability"
+```
+
+### 3. Advanced Multi-Agent System
+**File:** `advanced_clm_agent.ipynb`
+
+**Best For:** Complex queries, research, multi-source analysis
+
+**Features:**
+- All enhanced agent features
+- Intelligent agent routing (CLM vs Data Commons)
+- LangGraph workflow orchestration
+- LangSmith observability and tracing
+- Multi-source data integration
+- Cost tracking and optimization
+- Real-time trace visualization
+
+**Setup:**
+1. Start Data Commons MCP server:
+```bash
+wget https://astral.sh/uv/install.sh
+sh install.sh
+export DC_API_KEY=your_data_commons_key
+uv tool run datacommons-mcp serve http --port 3000 &
+```
+
+2. Configure LangSmith:
+```python
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"] = "your_key"
+os.environ["LANGCHAIN_PROJECT"] = "your_project"
+```
+
+3. Run queries like:
+```
+# "What is the unemployment rate in San Diego?" → Routes to Data Commons
+# "Show carbon turnover distribution in LA" → Routes to CLM
+# "Compare burn probability and population density" → Uses both agents
+```
+
+## 🖥️ MCP Server
+
+### Overview
+The `clm_mcp_server.py` provides four main tools via FastMCP:
+
+### Tools
+
+#### 1. `search_datasets`
+Semantic search across 189+ datasets using RAG-based vector search.
+
+```python
+result = search_datasets(
+    query="carbon turnover time",
+    top_k=3
+)
+```
+
+#### 2. `compute_zonal_stats`
+Calculate statistics for geographic features.
+
+```python
+result = compute_zonal_stats(
+    wcs_base_url="https://sparcal.sdsc.edu/geoserver",
+    wfs_base_url="https://sparcal.sdsc.edu/geoserver/boundary/wfs",
+    wcs_coverage_id="rrk__cstocks_turnovertime_202009_202312_t1_v5",
+    feature_id="boundary:ca_counties",
+    filter_column="name",
+    filter_value=["Los Angeles", "San Diego"],
+    stats=["mean", "median", "min", "max", "std"]
+)
+```
+
+#### 3. `zonal_count`
+Count pixels above/below thresholds.
+
+```python
+result = zonal_count(
+    wcs_base_url="https://sparcal.sdsc.edu/geoserver",
+    wfs_base_url="https://sparcal.sdsc.edu/geoserver/boundary/wfs",
+    wcs_coverage_id="rrk__cstocks_turnovertime_202009_202312_t1_v5",
+    feature_id="boundary:ca_counties",
+    filter_column="name",
+    filter_value="San Diego",
+    threshold=100.0
+)
+```
+
+#### 4. `zonal_distribution`
+Get value distributions for histogram/chart generation.
+
+```python
+result = zonal_distribution(
+    wcs_base_url="https://sparcal.sdsc.edu/geoserver",
+    wfs_base_url="https://sparcal.sdsc.edu/geoserver/boundary/wfs",
+    wcs_coverage_id="rrk__cstocks_turnovertime_202009_202312_t1_v5",
+    feature_id="boundary:ca_counties",
+    filter_column="name",
+    filter_value=["San Diego", "Los Angeles"],
+    num_bins=10,
+    global_bins=True
+)
+```
+
+### Running the MCP Server
+The server is hosted at `https://wenokn.fastmcp.app/mcp` by default. To run locally:
+
+```bash
+python clm_mcp_server.py
+```
+
+## ⚙️ Configuration
+
+### GeoServer Endpoints
+```python
+CLM_CONFIG = {
+    "wcs_base_url": "https://sparcal.sdsc.edu/geoserver",
+    "wfs_base_url": "https://sparcal.sdsc.edu/geoserver/boundary/wfs",
+    "feature_id": "boundary:ca_counties",
+    "filter_column": "name"
+}
+```
+
+### MCP Endpoints
+- **CLM Server**: `https://wenokn.fastmcp.app/mcp`
+- **Data Commons Server** (advanced only): `http://localhost:3000/mcp`
+
+### Model Selection
+Choose between OpenAI and NRP models in each notebook:
+
+```python
+MODEL = "openai"  # Fast, reliable, ~$0.001 per query
+# or
+MODEL = "nrp"     # Free, open-source, slightly slower
+```
+
+## 💡 Example Queries
+
+### Simple Agent
+```
+- "Find datasets about carbon turnover"
+- "What datasets are available for burn probability?"
+- "What are the units for this dataset?"
+- "Tell me more about this dataset"
+```
+
+### Enhanced Agent
+```
+- "What is the average carbon turnover time in Los Angeles?"
+- "Find the maximum annual burn probability in San Diego county"
+- "Which county has the highest burn probability?"
+- "Show me the unemployment distribution for San Diego and Los Angeles"
+- "Display a map of this dataset"
+- "What percentage of San Diego has carbon turnover time above 100 years?"
+- "Rank the top 5 counties by mean carbon turnover time"
+```
+
+### Advanced Multi-Agent
+```
+- "What is the population of Sacramento?" (→ Data Commons)
+- "Show carbon turnover distribution in LA" (→ CLM)
+- "Compare unemployment rate to burn probability in San Diego" (→ Both)
+- "What counties have high fire risk and high population?" (→ Both)
+```
+
+## 🤖 Model Options
+
+### OpenAI GPT-4o-mini
+- **Pros**: Fast (1-3s), reliable, well-tested
+- **Cons**: Requires paid API key (~$0.001 per query)
+- **Best for**: Production use, quick responses
+
+### NRP Qwen3
+- **Pros**: Free, open-source, privacy-friendly
+- **Cons**: Slower (5-10s), requires NRP access
+- **Best for**: Research, cost-sensitive applications
+
+## 🔬 Advanced Features
+
+### LangSmith Tracing (Advanced Agent)
+View detailed execution traces at https://smith.langchain.com/:
+- Visual workflow graphs
+- Token usage and costs
+- Latency for each step
+- All tool calls and responses
+- Debug information
+
+### Agent Routing Logic
+The advanced agent uses confidence-based routing:
+
+```
+Query Analysis
+    ↓
+├─→ CLM Agent (California environmental data)
+│   • Spatial patterns, distributions
+│   • 30m × 30m resolution
+│   • Fire, carbon, water, biodiversity
+│
+├─→ Data Commons Agent (Global demographics)
+│   • Population, income, health
+│   • Aggregated rates and totals
+│   • Any location worldwide
+│
+└─→ Both Agents (Complex queries)
+    • Combines environmental + demographic
+    • Cross-references datasets
+    • Synthesizes multi-source insights
+```
+
+### Visualization Capabilities
+- **Maps**: Interactive WMS layers with legends and units
+- **Charts**: Matplotlib-generated histograms and distributions
+- **Comparisons**: Side-by-side multi-county analysis
+- **Custom Styles**: Automatic style selection (e.g., `layer_name_std`)
+
+## 🤝 Contributing
+
+Contributions are welcome! Areas for improvement:
+1. Additional data sources beyond CLM and Data Commons
+2. More sophisticated visualization options
+3. Enhanced caching and performance optimization
+4. Additional statistical analysis methods
+5. Export capabilities (PDF, CSV, GeoJSON)
+
+## 📄 License
+
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- California Landscape Metrics team at SDSC
+- FastMCP framework by Anthropic
+- Pydantic AI for agent orchestration
+- LangGraph for multi-agent workflows
+- Google Data Commons for demographic data
+
+## 📞 Support
+
+- **Issues**: Open a GitHub issue for bugs or feature requests
+- **Discussions**: Use GitHub Discussions for questions
+- **Documentation**: See individual notebook files for detailed guides
+
+---
+
+**Note**: This is a research project. Results should be validated before use in production or policy decisions.
