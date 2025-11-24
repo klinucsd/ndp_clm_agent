@@ -361,7 +361,6 @@ Query Analysis
 - **Maps**: Interactive WMS layers with legends and units
 - **Charts**: Matplotlib-generated histograms and distributions
 - **Comparisons**: Side-by-side multi-county analysis
-- **Custom Styles**: Automatic style selection (e.g., `layer_name_std`)
 
 ## Contributing
 
